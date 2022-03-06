@@ -91,12 +91,13 @@ vector<string> split(string s, string delimiter)
 }
 
 /*
-    TO DO:
-    - Treat numbers that end with punctuation: One hundred. -> 100.
     Special cases and their implementation:
+    - One hundred and one -> 101
     - One -> 1  | one -> 1
     - Seventy-nine -> 79
-    - One, two, three. -> One, two, three.
+    - One, two, three. -> 1, 2, 3.
+    - One! two: three? -> 1! 2: 3?
+    - One# two/ (three) -> One# two/ (three) #THIS COULD BE CHANGED IF REQUIRED
 */
 string writtenNumberToDigit(vector<string> tokenizedInput)
 {
