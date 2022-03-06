@@ -72,6 +72,8 @@ CaseInsensitiveMap<int> hyphenNumbers =
     {"ninety" , 90}
 };
 
+string omitteableChars = ",.;:!?";
+
 vector<string> split(string s, string delimiter)
 {
     vector<string> result;
@@ -104,6 +106,12 @@ string writtenNumberToDigit(vector<string> tokenizedInput)
     int partialResult = 0;
     for(size_t i = 0; i < tokenizedInput.size(); i++){
         string token = tokenizedInput.at(i);
+        string omitedChar = "";
+        //SPECIAL CASE: numbers that end with punctuation
+        while(omitteableChars.find(token.back()) != string::npos){
+            omitedChar += token.back();
+            token.pop_back();
+        }
         if(multipliers.find(token) != multipliers.end()){
             //CASE: Multipliers(thousand, billion, hundred)
             if(token == "hundred"){ //SPECIAL CASE: five hundred seventy-seven thousand --> (5*100 + 77) * 1000
@@ -143,7 +151,17 @@ string writtenNumberToDigit(vector<string> tokenizedInput)
                     result = 0;
                     partialResult = 0;
                 }
-                vresult.push_back(token);
+                vresult.push_back(token+omitedChar);
+            }
+        }
+        //SPECIAL CASE: numbers that end with punctuation. We have finished translating the number
+        if(omitedChar != ""){
+            if(result != 0 || partialResult != 0){
+                //We have a number to add before the rest of the text!
+                result += partialResult;
+                vresult.push_back(std::to_string(result)+omitedChar);
+                result = 0;
+                partialResult = 0;
             }
         }
     }
@@ -175,9 +193,14 @@ map<string, string> tests = {
     {"one thousand one hundred eleven", "1111"},
     {"One thousand one hundred and eleven", "1111"},
     {"I have one hundred apples", "I have 100 apples"},
-    {"This is a very cool number: one billion five hundred sixty-seven million five hundred seventy-nine thousand eight hundred eleven . Very cool, aint it? :)","This is a very cool number: 1567579811 . Very cool, aint it? :)"},
+    {"This is a very cool number: one billion five hundred sixty-seven million five hundred seventy-nine thousand eight hundred eleven . Very cool, ain't it? :)","This is a very cool number: 1567579811 . Very cool, ain't it? :)"},
     {"Nine hundred and ninety-nine million nine hundred ninety nine thousand nine hundred and ninety nine","999999999"},
-    {"One, two, three.","One, two, three."},
+    {"A, B, C. It's as simple as one, two, three.","A, B, C. It's as simple as 1, 2, 3."},
+    {"His power level is over nine thousand!!!", "His power level is over 9000!!!"},
+    {"Give him the good ol' one, two", "Give him the good ol' 1, 2"},
+    {"Give him the good ol' 1, 2", "Give him the good ol' 1, 2"},
+    {"An influx of nine hundred million bees should put a stop to that!", "An influx of 900000000 bees should put a stop to that!"},
+    {"Yes, nine hundred million! That's a lot of bees!", "Yes, 900000000! That's a lot of bees!"},
 };
 
 int main()
